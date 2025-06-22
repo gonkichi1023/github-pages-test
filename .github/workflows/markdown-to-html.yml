@@ -1,0 +1,30 @@
+name: Convert Markdown to HTML and deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Convert index.md to index.html
+        uses: baileyjm02/markdown-to-html@v1
+        with:
+          input_files: index.md
+          output_dir: ./output
+          github_pages: true
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v3
+        with:
+          folder: ./output
