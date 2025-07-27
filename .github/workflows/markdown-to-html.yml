@@ -4,11 +4,16 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -18,13 +23,23 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Convert index.md to index.html
-        uses: baileyjm02/markdown-to-html@v1
+        uses: jaywcjlove/markdown-to-html-cli@main
         with:
-          input_files: index.md
-          output_dir: ./output
-          github_pages: true
+          source: index.md
+          output: ./output/index.html
 
-      - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v3.0.0
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          folder: ./output
+          path: ./output
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
